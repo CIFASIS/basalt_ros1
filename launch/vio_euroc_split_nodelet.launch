@@ -1,0 +1,41 @@
+<launch>
+  <arg name="calibration_file"
+       default="$(env BASALT_ROS1_ROOT)/config/euroc_ds_calib.json"/>
+  <arg name="vio_config_file"
+         default="$(env BASALT_ROS1_ROOT)/config/euroc_config.json"/>
+  <arg name="manager_name" default="vio_nodelet_manager"/>
+
+  <!-- manager nodelet -->
+  <node pkg="nodelet" type="nodelet"
+	name="$(arg manager_name)" args="manager"
+	clear_params="true" output="screen"/>
+
+  <!-- frontend nodelet  -->
+  <node pkg="nodelet" type="nodelet"
+	name="vio_front_end"
+	args="load basalt_ros1/VIOFrontEndNodelet $(arg manager_name)"
+	clear_params="true" output="screen">
+    <param name="calibration_file" value="$(arg calibration_file)"/>
+    <param name="vio_config_file" value="$(arg vio_config_file)"/>
+    <remap from="~left_image" to="/cam0/image_raw" />
+    <remap from="~right_image" to="/cam1/image_raw" />
+  </node>
+
+  <!-- backend nodelet -->
+  <node pkg="nodelet" type="nodelet"
+	name="vio_back_end"
+	args="load basalt_ros1/VIOBackEndNodelet $(arg manager_name)"
+	clear_params="true" output="screen">
+    <param name="calibration_file" value="$(arg calibration_file)"/>
+    <param name="vio_config_file" value="$(arg vio_config_file)"/>
+    <!-- order of imu topics is important!!! first gyro, then accel -->
+    <rosparam param="imu_topics">["imu"]</rosparam>
+    <remap from="~imu" to="/imu0" />
+    <remap from="~optical_flow" to="/vio_front_end/optical_flow" />
+  </node>
+  <node pkg="basalt_ros1" type="viz_flow_node"
+        name="viz_flow" clear_params="true" output="screen">
+    <remap from="~left_image" to="/cam0/image_raw" />
+    <remap from="~optical_flow" to="/vio_front_end/optical_flow" />
+  </node>
+</launch>
