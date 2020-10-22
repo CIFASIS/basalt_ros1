@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(basalt_ros1)
 
+add_subdirectory(thirdparty)
+
 if(NOT (DEFINED ENV{ROS_VERSION}))
    message(ERROR, "ROS_VERSION environment variable $ENV{ROS_VERSION} is not set!")
 else()
@@ -87,6 +89,7 @@ include_directories(
   ${basalt_INCLUDE_DIRS}
   ${TBB_INCLUDE_DIR}
   ${OpenCV_INCLUDE_DIRS}
+  thirdparty/vision_opencv/cv_bridge/include
 )
 
 add_library(basalt_ros1
@@ -101,15 +104,15 @@ src/vio_publisher.cpp
 src/utils.cpp
 )
 
-target_link_libraries(basalt_ros1 ${catkin_LIBRARIES} ${Boost_LIBRARIES} ${TBB_LIBRARIES})
+target_link_libraries(basalt_ros1 ${catkin_LIBRARIES} ${Boost_LIBRARIES} ${TBB_LIBRARIES} cv_bridge)
 
 # --- vio_frontend ---
 add_executable(vio_frontend_node src/vio_frontend_node.cpp)
-target_link_libraries(vio_frontend_node basalt_ros1  ${catkin_LIBRARIES} ${TBB_LIBRARIES})
+target_link_libraries(vio_frontend_node basalt_ros1  ${catkin_LIBRARIES} ${TBB_LIBRARIES} cv_bridge)
 add_dependencies(vio_frontend_node ${catkin_EXPORTED_TARGETS})
 
 add_library(vio_frontend_nodelet src/vio_frontend_nodelet.cpp)
-target_link_libraries(vio_frontend_nodelet basalt_ros1  ${catkin_LIBRARIES} ${TBB_LIBRARIES})
+target_link_libraries(vio_frontend_nodelet basalt_ros1  ${catkin_LIBRARIES} ${TBB_LIBRARIES} cv_bridge)
 add_dependencies(vio_frontend_nodelet ${catkin_EXPORTED_TARGETS})
 
 # --- vio_backend ---
@@ -124,11 +127,11 @@ add_dependencies(vio_backend_nodelet ${catkin_EXPORTED_TARGETS})
 # --- combined frontend/backend ---
 
 add_executable(vio_node src/vio_node.cpp)
-target_link_libraries(vio_node basalt_ros1  ${catkin_LIBRARIES} ${TBB_LIBRARIES})
+target_link_libraries(vio_node basalt_ros1  ${catkin_LIBRARIES} ${TBB_LIBRARIES} cv_bridge)
 add_dependencies(vio_node ${catkin_EXPORTED_TARGETS})
 
 add_library(vio_nodelet src/vio_nodelet.cpp)
-target_link_libraries(vio_nodelet basalt_ros1  ${catkin_LIBRARIES} ${TBB_LIBRARIES})
+target_link_libraries(vio_nodelet basalt_ros1  ${catkin_LIBRARIES} ${TBB_LIBRARIES} cv_bridge)
 add_dependencies(vio_nodelet ${catkin_EXPORTED_TARGETS})
 
 # --- realsense tools ---

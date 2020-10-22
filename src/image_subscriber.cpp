@@ -8,6 +8,8 @@
 
 #include <boost/range/irange.hpp>
 
+#include <cv_bridge/cv_bridge.h>
+
 #include <stdexcept>
 
 using boost::irange;
@@ -42,16 +44,26 @@ void ImageSubscriber::callback(ImageConstPtr const& left,
 
     data->img_data[i].img.reset(
         new basalt::ManagedImage<uint16_t>(img.width, img.height));
-
-    const uint8_t* data_in = (const uint8_t*)&img.data[0];
-    uint16_t* data_out = data->img_data[i].img->ptr;
-    // TODO: this 8-bit to 16bit conversion can probably be done
-    // more efficiently with opencv
-    size_t full_size = img.width * img.height;
-    for (size_t j = 0; j < full_size; j++) {
-      int val = data_in[j];
-      val = val << 8;
-      data_out[j] = val;
+    std::string encoding = img.encoding;
+    if(encoding == "mono8"){
+        const uint8_t* data_in = (const uint8_t*)&img.data[0];
+        uint16_t* data_out = data->img_data[i].img->ptr;
+        // TODO: this 8-bit to 16bit conversion can probably be done
+        // more efficiently with opencv
+        size_t full_size = img.width * img.height;
+        for (size_t j = 0; j < full_size; j++) {
+          int val = data_in[j];
+          val = val << 8;
+          data_out[j] = val;
+        }
+    } else if (encoding == "bgr8") {
+        cv_bridge::CvImagePtr cv_ptr = cv_bridge::toCvCopy(img, sensor_msgs::image_encodings::MONO16);
+        // Convert cv::Mat (Unsigned 2 byte integer) to Pangolin ManagedImage
+        std::memcpy((void*)data->img_data[i].img->ptr, (void*)cv_ptr->image.data, cv_ptr->image.total()*cv_ptr->image.elemSize());
+    } else {
+        std::cerr << "Encoding " << encoding << " is not supported."
+                 << std::endl;
+        std::abort();
     }
   }
 
