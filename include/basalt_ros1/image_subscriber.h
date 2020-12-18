@@ -29,7 +29,7 @@ class ImageSubscriber {
   ImageSubscriber(const ros::NodeHandle& node, const std::string& topic_left,
                   const std::string& topic_right);
 
-  ~ImageSubscriber(){};
+  ~ImageSubscriber();
 
   OpticalFlowInputQueue* getQueue() { return queue_; }
   void setQueue(OpticalFlowInputQueue* q) { queue_ = q; }
@@ -44,5 +44,9 @@ class ImageSubscriber {
   long int max_q_{0};
   uint64_t framesReceived_{0};
   ros::Time lastTime_;
+#ifdef SAVE_TIMES
+  std::ofstream f_track_times_;
+  int num_tracked_frames_;
+#endif
 };
 }  // namespace basalt_ros1

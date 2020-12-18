@@ -2,7 +2,11 @@ cmake_minimum_required(VERSION 2.8.3)
 project(basalt_ros1)
 
 add_subdirectory(thirdparty)
-
+option(SAVE_TIMES "Enable option to save tracking times" OFF)
+if(SAVE_TIMES)
+    message(STATUS "Building with SAVE_TIMES")
+    add_definitions(-DSAVE_TIMES)
+endif()
 if(NOT (DEFINED ENV{ROS_VERSION}))
    message(ERROR, "ROS_VERSION environment variable $ENV{ROS_VERSION} is not set!")
 else()
