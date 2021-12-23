@@ -5,10 +5,28 @@
          default="$(env BASALT_ROS1_ROOT)/config/rosario_config_euroc.json"/>
   <arg name="manager_name" default="vio_nodelet_manager"/>
 
-  <!-- manager nodelet -->
+ <!-- manager nodelet -->
   <node pkg="nodelet" type="nodelet"
-	name="$(arg manager_name)" args="manager"
-	clear_params="true" output="screen"/>
+    name="$(arg manager_name)" args="manager"
+    clear_params="true" output="screen"/>
+
+  <node pkg="nodelet" type="nodelet"
+    name="left"
+    args="load image_proc/rectify $(arg manager_name)"
+    clear_params="true" output="screen">    
+    <remap from="image_mono" to="/stereo/left/image_raw" />
+    <remap from="camera_info" to="/stereo/left/camera_info" />
+    <remap from="image_rect" to="/stereo/left/image_rect_color" /> 
+  </node>
+
+  <node pkg="nodelet" type="nodelet"
+    name="right"
+    args="load image_proc/rectify $(arg manager_name)"
+    clear_params="true" output="screen">
+    <remap from="image_mono" to="/stereo/right/image_raw" />
+    <remap from="camera_info" to="/stereo/right/camera_info" />
+    <remap from="image_rect" to="/stereo/right/image_rect_color" /> 
+  </node>
 
   <!-- frontend nodelet  -->
   <node pkg="nodelet" type="nodelet"
@@ -17,25 +35,25 @@
 	clear_params="true" output="screen">
     <param name="calibration_file" value="$(arg calibration_file)"/>
     <param name="vio_config_file" value="$(arg vio_config_file)"/>
-    <remap from="~left_image" to="/stereo/left/image_raw" />
-    <remap from="~right_image" to="/stereo/right/image_raw" />
-  </node>
+    <remap from="~left_image" to="/stereo/left/image_rect_color" />
+    <remap from="~right_image" to="/stereo/right/image_rect_color" />
+  </node> 
 
   <!-- backend nodelet -->
-  <node pkg="nodelet" type="nodelet"
+<!-- order of imu topics is important!!! first gyro, then accel -->
+ <node pkg="nodelet" type="nodelet"
 	name="vio_back_end"
 	args="load basalt_ros1/VIOBackEndNodelet $(arg manager_name)"
 	clear_params="true" output="screen">
     <param name="calibration_file" value="$(arg calibration_file)"/>
     <param name="vio_config_file" value="$(arg vio_config_file)"/>
-    <!-- order of imu topics is important!!! first gyro, then accel -->
     <rosparam param="imu_topics">["imu"]</rosparam>
     <remap from="~imu" to="/imu" />
     <remap from="~optical_flow" to="/vio_front_end/optical_flow" />
   </node>
   <node pkg="basalt_ros1" type="viz_flow_node"
         name="viz_flow" clear_params="true" output="screen">
-    <remap from="~left_image" to="/stereo/left/image_raw" />
+    <remap from="~left_image" to="/stereo/left/image_rect_color" />
     <remap from="~optical_flow" to="/vio_front_end/optical_flow" />
   </node>
 </launch>
