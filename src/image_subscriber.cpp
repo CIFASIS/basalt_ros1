@@ -29,28 +29,28 @@ ImageSubscriber::ImageSubscriber(const ros::NodeHandle& node,
       *subs_[0], *subs_[1], 10);
   sync_->registerCallback(&ImageSubscriber::callback, this);
   lastTime_ = ros::Time::now();
-#ifdef SAVE_TIMES
-  f_track_times_.open("tracking_times_start.txt");
-  f_track_times_ << std::fixed;
-  f_track_times_ << std::setprecision(6);
-  num_tracked_frames_ = 0;
-#endif
+//#ifdef SAVE_TIMES
+//  f_track_times_.open("tracking_times_start.txt");
+//  f_track_times_ << std::fixed;
+//  f_track_times_ << std::setprecision(6);
+//  num_tracked_frames_ = 0;
+//#endif
 }
 
 ImageSubscriber::~ImageSubscriber() {
-#ifdef SAVE_TIMES
-  f_track_times_.close();
-#endif
+//#ifdef SAVE_TIMES
+//  f_track_times_.close();
+//#endif
 }
 
 
 void ImageSubscriber::callback(ImageConstPtr const& left,
                                ImageConstPtr const& right) {
-#ifdef SAVE_TIMES
-  num_tracked_frames_++;
-  auto const t = std::chrono::system_clock::now().time_since_epoch().count();
-  f_track_times_ << num_tracked_frames_ << " " << t / 1e09 << std::endl;
-#endif
+//#ifdef SAVE_TIMES
+//  num_tracked_frames_++;
+//  auto const t = std::chrono::system_clock::now().time_since_epoch().count();
+//  f_track_times_ << num_tracked_frames_ << " " << t / 1e09 << std::endl;
+//#endif
   basalt::OpticalFlowInput::Ptr data(new basalt::OpticalFlowInput);
 
   const int NUM_CAMS = 2;
